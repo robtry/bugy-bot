@@ -1,45 +1,72 @@
-import { Canvas, useThree, extend, ReactThreeFiber } from '@react-three/fiber';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import Bulb from './Bulb';
-import Exe from './Exe';
-import Floor from './Floor';
-import Food from './Food';
+import { Suspense, useRef } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls, Stars } from '@react-three/drei';
+import { Physics } from '@react-three/cannon';
+import Background from './components/Background';
+import Sun from './components/Sun';
+import Exe from './components/models/Exe';
+import Floor from './components/Floor';
+import Dashboard from './components/Dashboard';
+import appStore from './store/app.store';
+import Apple from './components/models/Apple';
 
-extend({ OrbitControls });
-
-// To avoid type error from orbit
-declare global {
-	namespace JSX {
-		interface IntrinsicElements {
-			orbitControls: ReactThreeFiber.Object3DNode<OrbitControls, typeof OrbitControls>;
-		}
-	}
-}
-
-// Create orbit to move around the scene
-const Orbit = () => {
-	const { camera, gl } = useThree();
-	return <orbitControls args={[camera, gl.domElement]} />;
-};
-
-// Create the canvas and camera
+/**
+ * The scenario
+ * Here is the initial setup
+ * * Dashboard
+ * * Canvas
+ */
 function App() {
+	// ref to avoid the collision problem
+	const foodRef = useRef(appStore.getState().food);
+	// const mobsRef = useRef(appStore.getState().entities);
+
+	// Share the model
+	// const model = useLoader(GLTFLoader, 'http://0.0.0.0:8000/apple/scene.gltf');
+	// Remove the food on collision without re-rendering
+	// const [removeFood] = appStore((state) => [state.removeFood], shallow);
 	return (
 		<div style={{ height: '100vh', width: '100vw' }}>
-			<Canvas style={{ background: 'black' }} camera={{ position: [3, 3, 3] }} shadows>
+			{/* Controls, Log, Chart */}
+			<Dashboard />
+			{/* Canvas */}
+			<Canvas style={{ background: 'black' }} camera={{ position: [8, 7, 5] }} shadows>
 				{/* Lights */}
-				<ambientLight intensity={0.2} />
-				<Bulb position={[0, 3, 0]} />
+				<ambientLight intensity={0.08} />
 				{/* Rotate around the orgin */}
-				<Orbit />
+				<OrbitControls />
 				{/* Show x, y and z axis */}
-				<axesHelper args={[5]} />
-				{/* The mob */}
-				<Exe position={[1, 1, 0]} />
-				{/* Food */}
-				<Food position={[-1, 1, 0]} />
-				{/* The floor */}
-				<Floor position={[0, -0.5, 0]} />
+				{/* <axesHelper args={[5]} /> */}
+				{/* Show 1000 starts in the scenario */}
+				<Stars count={500} />
+				{/* Suspense to wait to load the model */}
+				<Suspense fallback={null}>
+					{/* Add Physics to detect collision */}
+					<Physics>
+						{/* <Debug color='black'> */}
+						{/* The ligth to represent the day */}
+						<Sun />
+
+						{/* Apples */}
+						{foodRef.current.map((f, i) => (
+							<Apple key={f.id} position={[f.position.x, f.position.y, f.position.z]} />
+						))}
+
+						{/* Mobs */}
+						{/* {mobsRef.current.map((exe) => (
+							<Exe key={exe.id} position={[exe.position.x, exe.position.y, exe.position.z]} />
+						))} */}
+						<Exe />
+
+						{/* Floor */}
+						<Floor rotation={[-Math.PI / 2, 0, 0]} />
+						{/* </Debug> */}
+					</Physics>
+				</Suspense>
+				{/* Background */}
+				<Suspense fallback={null}>
+					<Background />
+				</Suspense>
 			</Canvas>
 		</div>
 	);
