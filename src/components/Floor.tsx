@@ -21,10 +21,6 @@ export default function Floor(props: PlaneProps) {
 	// Get the size of the plane
 	const [size] = appStore((state) => [state.planeSize], shallow);
 
-	// if (!size) {
-	// 	return null;
-	// }
-
 	return (
 		<mesh ref={ref} receiveShadow>
 			<planeBufferGeometry args={[size, size]} />

@@ -22,10 +22,18 @@ export default function Sun() {
 	const speedDayRef = useRef(0);
 	// Distance
 	const distanceRef = useRef(0);
+	// To know when hide it
+	const shouldHideRef = useRef(false);
 
 	// Listen for the changes that are handled below
-	const [active, nextGeneration, speedDay, planceDistance] = appStore(
-		(state) => [state.active, state.nextGeneration, state.speedDay, state.planeSize],
+	const [active, nextGeneration, speedDay, planceDistance, available] = appStore(
+		(state) => [
+			state.active,
+			state.nextGeneration,
+			state.speedDay,
+			state.planeSize,
+			state.available
+		],
 		shallow
 	);
 
@@ -48,25 +56,32 @@ export default function Sun() {
 		setLoading(false);
 	}, [planceDistance]);
 
+	// Listen to changes if there are no food hide the sun
+	useEffect(() => {
+		shouldHideRef.current = available === 0;
+	}, [available]);
+
 	// To load the texture
 	const texture = useLoader(TextureLoader, image);
 
 	// Loop
 	useFrame(() => {
-		if (shouldRunRef.current) {
-			// Move
-			sunRef.current.position.x = distanceRef.current * Math.cos(angleRef.current);
-			sunRef.current.position.y = distanceRef.current * Math.sin(angleRef.current);
-			// Rotate
-			sunRef.current.rotation.x += 0.01;
-			sunRef.current.rotation.z += 0.01;
-			// Reset angle
-			if (angleRef.current > halfCircle) {
-				nextGeneration();
-				angleRef.current = 0;
-			} else {
-				angleRef.current += speedDayRef.current;
-			}
+		if (shouldHideRef.current) {
+			sunRef.current.visible = false;
+		}
+		if (!shouldRunRef.current) return;
+		// Move
+		sunRef.current.position.x = distanceRef.current * Math.cos(angleRef.current);
+		sunRef.current.position.y = distanceRef.current * Math.sin(angleRef.current);
+		// Rotate
+		sunRef.current.rotation.x += 0.01;
+		sunRef.current.rotation.z += 0.01;
+		// Reset angle
+		if (angleRef.current > halfCircle) {
+			nextGeneration();
+			angleRef.current = 0;
+		} else {
+			angleRef.current += speedDayRef.current;
 		}
 	});
 

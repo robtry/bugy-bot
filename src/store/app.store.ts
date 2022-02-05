@@ -3,11 +3,10 @@ import produce from 'immer';
 import { v4 as uuidv4 } from 'uuid';
 import { randomNumber } from '../utils';
 
-const INITIAL_GENERATION = 0;
-const INITIAL_SPEED = 0.0005;
+const INITIAL_GENERATION = 1;
+const INITIAL_SPEED = 0.001;
 const INITIAL_STATUS = true;
-const INITIAL_ENTITIES = 3;
-const INITIAL_FOOD = Math.floor(randomNumber(10, 100));
+export const INITIAL_FOOD = Math.floor(randomNumber(10, 35));
 
 const PLANE_SIZE = 15; // Z and X
 
@@ -44,25 +43,25 @@ const generateFood = (quantity: number): FoodEntitie[] => {
 	return food;
 };
 
-const generateExe = (quantity: number): ExeEntitie[] => {
-	const entities: ExeEntitie[] = [];
-	const circle = 2 * Math.PI;
-	const angle = circle / quantity;
-	const distance = (PLANE_SIZE - 2) / 2; // -1 because is the size of the Mob
-	let i = 0;
-	for (; i <= circle; i += angle) {
-		entities.push({
-			id: uuidv4(),
-			eated: 0,
-			position: {
-				x: distance * Math.cos(i),
-				y: 0,
-				z: distance * Math.sin(i)
-			}
-		});
-	}
-	return entities;
-};
+// const generateExe = (quantity: number): ExeEntitie[] => {
+// 	const entities: ExeEntitie[] = [];
+// 	const circle = 2 * Math.PI;
+// 	const angle = circle / quantity;
+// 	const distance = (PLANE_SIZE - 2) / 2; // -1 because is the size of the Mob
+// 	let i = 0;
+// 	for (; i <= circle; i += angle) {
+// 		entities.push({
+// 			id: uuidv4(),
+// 			eated: 0,
+// 			position: {
+// 				x: distance * Math.cos(i),
+// 				y: 0,
+// 				z: distance * Math.sin(i)
+// 			}
+// 		});
+// 	}
+// 	return entities;
+// };
 
 interface AppState {
 	// Plane size
@@ -71,10 +70,11 @@ interface AppState {
 	generation: number;
 	nextGeneration: () => void;
 	// Current entities
-	entities: ExeEntitie[];
+	// entities: ExeEntitie[];
 	// Current food
 	food: FoodEntitie[];
-	removeFood: (id: string) => void;
+	available: number;
+	// removeFood: (id: string) => void;
 	// To run automatically
 	active: boolean;
 	setActive: (active: boolean) => void;
@@ -85,38 +85,60 @@ interface AppState {
 	// Datasets for charts
 }
 
+// The store that all the components will listen for
 const appStore = create<AppState>((set) => ({
 	planeSize: PLANE_SIZE,
+
 	// Current days
 	generation: INITIAL_GENERATION,
 	nextGeneration: () =>
 		set((state) =>
 			produce(state, (draft) => {
 				draft.generation++;
-			})
-		),
-	// Food
-	food: generateFood(INITIAL_FOOD),
-	removeFood: (id: string) =>
-		set((state) =>
-			produce(state, (draft) => {
-				const eatenFoodIndex = draft.food.findIndex((f) => f.id === id);
-				if (eatenFoodIndex !== -1) {
-					draft.food[eatenFoodIndex].available = false;
+				const available = draft.food.filter((f) => f.available).length;
+				draft.available = available;
+				if (available === 2) {
+					for (const f of draft.food) {
+						f.available = false;
+					}
+					draft.active = false;
+					draft.available = 0;
+				}
+				const quantity = Math.floor(randomNumber(1, available));
+				let i = 0;
+				for (; i < quantity; i++) {
+					const nextIndex = Math.floor(randomNumber(0, INITIAL_FOOD - 1));
+					draft.food[nextIndex].available = false;
 				}
 			})
 		),
+
+	// Food
+	food: generateFood(INITIAL_FOOD),
+	available: INITIAL_FOOD,
+	// removeFood: (id: string) =>
+	// 	set((state) =>
+	// 		produce(state, (draft) => {
+	// 			const eatenFoodIndex = draft.food.findIndex((f) => f.id === id);
+	// 			if (eatenFoodIndex !== -1) {
+	// 				draft.food[eatenFoodIndex].available = false;
+	// 			}
+	// 		})
+	// 	),
 	// Current entities
-	entities: generateExe(INITIAL_ENTITIES),
+	// entities: generateExe(INITIAL_ENTITIES),
 
 	// To run automatically
 	active: INITIAL_STATUS,
 	setActive: (active: boolean) =>
 		set((state) =>
 			produce(state, (draft) => {
-				draft.active = active;
+				if (draft.available > 0) {
+					draft.active = active;
+				}
 			})
 		),
+
 	// To determinate the speed day
 	speedDay: INITIAL_SPEED,
 	fastDay: () =>

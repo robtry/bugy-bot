@@ -19,12 +19,7 @@ import Apple from './components/models/Apple';
 function App() {
 	// ref to avoid the collision problem
 	const foodRef = useRef(appStore.getState().food);
-	// const mobsRef = useRef(appStore.getState().entities);
 
-	// Share the model
-	// const model = useLoader(GLTFLoader, 'http://0.0.0.0:8000/apple/scene.gltf');
-	// Remove the food on collision without re-rendering
-	// const [removeFood] = appStore((state) => [state.removeFood], shallow);
 	return (
 		<div style={{ height: '100vh', width: '100vw' }}>
 			{/* Controls, Log, Chart */}
@@ -49,7 +44,7 @@ function App() {
 
 						{/* Apples */}
 						{foodRef.current.map((f, i) => (
-							<Apple key={f.id} position={[f.position.x, f.position.y, f.position.z]} />
+							<Apple id={f.id} key={f.id} position={[f.position.x, f.position.y, f.position.z]} />
 						))}
 
 						{/* Mobs */}
