@@ -2,6 +2,7 @@
 
 La escena consiste de _Bugy bot_ el cual es un bot postapocaliptico viviendo en un entorno rodeado por una cantidad aleatoria de manzanas, de las cuales depende su supervivencia, aunque es un misterio el cómo las consume, solo desaparecen día con día. Hay días que solo come una u otros que come bastantes.
 
+Video: https://youtu.be/GXybKXQbQdE
 ## Recursos
 
 Los recursos utilizados en el proyecto fueron obtenidos de los siguientes enlaces:
